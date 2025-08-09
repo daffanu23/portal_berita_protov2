@@ -3,15 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Testing</title>
+    <title>Portal Berita Terkini</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f4f4; }
+        .container { max-width: 960px; margin: auto; padding: 20px; }
+        header { text-align: center; margin-bottom: 20px; }
+        .berita-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .berita-card { background-color: white; border: 1px solid #ddd; padding: 15px; border-radius: 5px; cursor: pointer; transition: box-shadow 0.3s; }
+        .berita-card:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .berita-card h3 { margin-top: 0; }
+        .berita-card p { font-size: 0.9em; color: #555; }
+        .auth-links { position: absolute; top: 10px; right: 10px; }
+    </style>
 </head>
 <body>
-    <label for="">Nama</label>
-    <input type="text" id="name" placeholder="Masukkan nama anda">
-    <button onclick="simpan()">simpan</button>
+    <div class="auth-links">
+        <a href="login-user.html">Login</a> | <a href="registrasi.html">Registrasi</a>
+    </div>
 
-    <script type="module" src="script.js"></script>
+    <div class="container">
+        <header>
+            <h1>Portal Berita</h1>
+            <p>Berita terkini dari seluruh dunia.</p>
+        </header>
+        
+        <div id="berita-list" class="berita-grid">
+            </div>
+    </div>
 
-    <a href="login.html">admin</a>
+    <script type="module" src="main.js"></script>
+
+    <a href="login.html">Admin/a>
 </body>
 </html>
