@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen Berita</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        input[type="text"], textarea, select { padding: 8px; width: 90%; margin-bottom: 10px; }
+        textarea { height: 150px; }
+        button { padding: 8px 12px; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <a href="admin.html">&larr; Kembali ke Dashboard</a>
+    <h1>Manajemen Berita</h1>
+
+    <form id="berita-form">
+        <input type="hidden" id="berita-id">
+        
+        <label for="judul">Judul Berita</label><br>
+        <input type="text" id="judul" required><br>
+
+        <label for="kategori">Kategori</label><br>
+        <select id="kategori" required>
+            <option value="">Pilih Kategori...</option>
+            </select><br>
+
+        <label for="isi-berita">Isi Berita</label><br>
+        <textarea id="isi-berita" required></textarea><br>
+
+        <button type="submit">Simpan Berita</button>
+    </form>
+
+    <hr>
+
+    <h3>Daftar Berita</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Judul</th>
+                <th>Kategori</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody id="berita-list">
+            </tbody>
+    </table>
+
+    <script type="module" src="berita.js"></script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        input[type="text"] { padding: 8px; width: 300px; }
+        button { padding: 8px 12px; cursor: pointer; }
+        #logout-btn { background-color: #d9534f; color: white; border: none; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+
+    <h1>Admin Dashboard</h1>
+    <p>Selamat datang! Di sini Anda bisa mengelola kategori dan berita.</p>
+    <button id="logout-btn">Logout</button>
+
+    <hr>
+
+    <h2>Manajemen Kategori</h2>
+    <a href="berita.html"><button>Kelola Berita &rarr;</button></a>
+    <form id="kategori-form">
+        <input type="hidden" id="kategori-id"> <input type="text" id="nama-kategori" placeholder="Masukkan nama kategori baru" required>
+        <button type="submit">Simpan Kategori</button>
+    </form>
+
+    <h3>Daftar Kategori</h3>
+    <table id="kategori-table">
+        <thead>
+            <tr>
+                <th>Nama Kategori</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody id="kategori-list">
+            </tbody>
+    </table>
+
+    <script type="module" src="admin.js"></script>
+</body>
+</html>
