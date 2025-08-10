@@ -22,13 +22,28 @@ function getBeritaIdFromUrl() {
 
 async function muatDetailBerita() {
     const id = getBeritaIdFromUrl();
-    if (!id) { detailContainer.innerHTML = "<h1>Error: ID Berita tidak ditemukan.</h1>"; return; }
+    if (!id) {
+        detailContainer.innerHTML = "<h1>Error: ID Berita tidak ditemukan.</h1>";
+        return;
+    }
     detailContainer.innerHTML = "<p>Memuat berita...</p>";
     const { data, error } = await supabase.from("berita").select(`judul, isi_berita, created_at, kategori(nama_kategori)`).eq("id", id).single();
-    if (error) { detailContainer.innerHTML = `<h1>Error: Berita tidak dapat ditemukan.</h1>`; } 
-    else {
-        const tanggal = new Date(data.created_at).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'});
-        detailContainer.innerHTML = `<div class="berita-header"><h1>${data.judul}</h1><p class="berita-meta"><strong>Kategori:</strong> ${data.kategori.nama_kategori} | <strong>Dipublikasikan pada:</strong> ${tanggal}</p></div><div class="berita-content">${data.isi_berita.replace(/\n/g, '<br>')}</div>`;
+    if (error) {
+        detailContainer.innerHTML = `<h1>Error: Berita tidak dapat ditemukan.</h1>`;
+    } else {
+        const tanggal = new Date(data.created_at).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        detailContainer.innerHTML = `
+            <div class="berita-header">
+                <h1>${data.judul}</h1>
+                <p class="berita-meta">
+                    <strong>Kategori:</strong> ${data.kategori.nama_kategori} | 
+                    <strong>Dipublikasikan pada:</strong> ${tanggal}
+                </p>
+            </div>
+            <div class="berita-content">
+                ${data.isi_berita.replace(/\n/g, '<br>')}
+            </div>
+        `;
     }
 }
 
@@ -59,23 +74,48 @@ komentarForm.addEventListener('submit', async (e) => {
     const isiKomentar = document.getElementById('isi-komentar').value;
     const beritaId = getBeritaIdFromUrl();
     const { error } = await supabase.from('komentar').insert({ isi_komentar: isiKomentar, id_berita: beritaId, id_user: currentUser.id });
-    if (error) { console.error("Gagal mengirim komentar:", error); } 
-    else { komentarForm.reset(); await muatKomentar(); }
+    if (error) {
+        console.error("Gagal mengirim komentar:", error);
+    } else {
+        komentarForm.reset();
+        await muatKomentar();
+    }
 });
 
+// GANTI FUNGSI LAMA ANDA DENGAN VERSI LENGKAP INI
+// GANTI FUNGSI LAMA DENGAN VERSI LENGKAP INI
 async function muatKomentar() {
     const beritaId = getBeritaIdFromUrl();
-    if (!beritaId) return;
-    komentarList.innerHTML = "<p>Memuat komentar...</p>";
-    const { data, error } = await supabase.from('komentar').select(`id, created_at, isi_komentar, id_induk_komentar, id_user`).eq('id_berita', beritaId).order('created_at', { ascending: true });
-    if (error) { console.error("Gagal memuat komentar:", error); komentarList.innerHTML = "<p>Gagal memuat komentar.</p>"; return; }
-    if (data.length === 0) { komentarList.innerHTML = "<p>Jadilah yang pertama berkomentar!</p>"; return; }
+    if (!beritaId) {
+        komentarList.innerHTML = "";
+        return;
+    }
 
-    const userIds = [...new Set(data.map(comment => comment.id_user))];
-    const { data: usersData, error: usersError } = await supabase.from('users').select('id, email').in('id', userIds);
-    if (usersError) console.error("Gagal memuat data user:", usersError);
-    
-    const userMap = new Map(usersData ? usersData.map(user => [user.id, user.email]) : []);
+    komentarList.innerHTML = "<p>Memuat komentar...</p>";
+
+    const { data, error } = await supabase
+        .from('komentar')
+        .select(`
+            id,
+            created_at,
+            isi_komentar,
+            id_induk_komentar,
+            profiles ( id, username )
+        `)
+        .eq('id_berita', beritaId)
+        .order('created_at', { ascending: true });
+
+    if (error) {
+        console.error("GAGAL MENGAMBIL KOMENTAR:", error);
+        komentarList.innerHTML = "<p>Terjadi kesalahan saat memuat komentar. Cek console browser untuk detail.</p>";
+        return;
+    }
+
+    if (data.length === 0) {
+        komentarList.innerHTML = "<p>Jadilah yang pertama berkomentar!</p>";
+        return;
+    }
+
     komentarList.innerHTML = "";
     const commentMap = {};
 
@@ -83,9 +123,17 @@ async function muatKomentar() {
         const commentEl = document.createElement('div');
         commentEl.id = `comment-${komentar.id}`;
         commentEl.style.cssText = "border: 1px solid #eee; padding: 10px; margin-top: 10px; border-radius: 5px;";
-        const emailUser = userMap.get(komentar.id_user) || 'User Anonim';
-        const namaTampilan = emailUser.split('@')[0];
-        commentEl.innerHTML = `<p><strong>${namaTampilan}</strong> <span style="font-size:0.8em; color:gray;">- ${new Date(komentar.created_at).toLocaleString('id-ID')}</span></p><p>${komentar.isi_komentar}</p><button onclick="showReplyForm(${komentar.id})">Balas</button><div id="reply-form-container-${komentar.id}"></div>`;
+
+        // INI ADALAH BARIS YANG SUDAH DIPERBAIKI DAN LEBIH AMAN
+        const username = komentar.profiles?.username; // Menggunakan optional chaining (?.)
+        const namaTampilan = username ? username.split('@')[0] : 'User Anonim';
+
+        commentEl.innerHTML = `
+            <p><strong>${namaTampilan}</strong> <span style="font-size:0.8em; color:gray;">- ${new Date(komentar.created_at).toLocaleString('id-ID')}</span></p>
+            <p>${komentar.isi_komentar}</p>
+            <button onclick="showReplyForm(${komentar.id})">Balas</button>
+            <div id="reply-form-container-${komentar.id}"></div>
+        `;
         commentMap[komentar.id] = commentEl;
     });
 
@@ -93,29 +141,50 @@ async function muatKomentar() {
         if (komentar.id_induk_komentar && commentMap[komentar.id_induk_komentar]) {
             const parentEl = commentMap[komentar.id_induk_komentar];
             const replyEl = commentMap[komentar.id];
-            if (replyEl) { replyEl.style.cssText += "margin-left: 30px; border-left: 2px solid #ddd;"; parentEl.appendChild(replyEl); }
+            if (replyEl) {
+                replyEl.style.cssText += "margin-left: 30px; border-left: 2px solid #ddd;";
+                parentEl.appendChild(replyEl);
+            }
         }
     });
 
     data.forEach(komentar => {
-        if (!komentar.id_induk_komentar) { komentarList.appendChild(commentMap[komentar.id]); }
+        if (!komentar.id_induk_komentar) {
+            komentarList.appendChild(commentMap[komentar.id]);
+        }
     });
 }
 
 window.showReplyForm = function(parentId) {
     const container = document.getElementById(`reply-form-container-${parentId}`);
-    container.innerHTML = `<form onsubmit="postReply(event, ${parentId})"><textarea placeholder="Tulis balasan..." required></textarea><button type="submit">Kirim Balasan</button></form>`;
-}
+    container.innerHTML = `
+        <form onsubmit="postReply(event, ${parentId})">
+            <textarea placeholder="Tulis balasan..." required></textarea>
+            <button type="submit">Kirim Balasan</button>
+        </form>
+    `;
+};
 
 window.postReply = async function(event, parentId) {
     event.preventDefault();
-    if (!currentUser) return;
+    if (!currentUser) {
+        alert("Anda harus login untuk membalas.");
+        return;
+    }
     const isiKomentar = event.target.querySelector('textarea').value;
     const beritaId = getBeritaIdFromUrl();
-    const { error } = await supabase.from('komentar').insert({ isi_komentar: isiKomentar, id_berita: beritaId, id_user: currentUser.id, id_induk_komentar: parentId });
-    if (error) { console.error("Gagal mengirim balasan:", error); } 
-    else { await muatKomentar(); }
-}
+    const { error } = await supabase.from('komentar').insert({
+        isi_komentar: isiKomentar,
+        id_berita: beritaId,
+        id_user: currentUser.id,
+        id_induk_komentar: parentId
+    });
+    if (error) {
+        console.error("Gagal mengirim balasan:", error);
+    } else {
+        await muatKomentar();
+    }
+};
 
 // --- INISIALISASI HALAMAN ---
 async function initPage() {

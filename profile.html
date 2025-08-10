@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profil</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f4f4; display: flex; justify-content: center; padding-top: 50px; }
+        .container { background-color: white; padding: 20px 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 500px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="email"] { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%; }
+        .avatar-preview { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid #ddd; display: block; margin-bottom: 10px; }
+        .kategori-tags { display: flex; flex-wrap: wrap; gap: 10px; border: 1px solid #ddd; padding: 10px; border-radius: 4px; }
+        .kategori-tags label { font-weight: normal; display: flex; align-items: center; }
+        .kategori-tags input { margin-right: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Edit Profil Anda</h2>
+        <form id="profile-form">
+            <div class="form-group">
+                <label>Foto Profil</label>
+                <img id="avatar-preview" src="placeholder.png" alt="Avatar Preview" class="avatar-preview">
+                <input type="file" id="avatar-file" accept="image/*">
+            </div>
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" required>
+            </div>
+            <div class="form-group">
+                <label for="nama-lengkap">Nama Lengkap</label>
+                <input type="text" id="nama-lengkap">
+            </div>
+            <div class="form-group">
+                <label>Kategori Favorit</label>
+                <div id="kategori-tags" class="kategori-tags">
+                    <p>Memuat kategori...</p>
+                </div>
+            </div>
+            <button type="submit">Simpan Perubahan</button>
+        </form>
+    </div>
+    <script type="module" src="profile.js"></script>
+</body>
+</html>
