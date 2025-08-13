@@ -10,21 +10,28 @@
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; }
         input[type="text"], input[type="email"] { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%; }
-        .avatar-preview { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid #ddd; display: block; margin-bottom: 10px; }
+        button { padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
+        #submit-btn { background-color: #007bff; color: white; width: 100%; }
+        .avatar-container { display: flex; align-items: center; gap: 20px; }
+        .avatar-preview { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid #ddd; }
+        .file-controls button { background-color: #dc3545; color: white; }
         .kategori-tags { display: flex; flex-wrap: wrap; gap: 10px; border: 1px solid #ddd; padding: 10px; border-radius: 4px; }
         .kategori-tags label { font-weight: normal; display: flex; align-items: center; }
         .kategori-tags input { margin-right: 5px; }
+        .back-link { display: block; text-align: center; margin-top: 20px; }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Edit Profil Anda</h2>
         <form id="profile-form">
-            <div class="form-group">
-                <label>Foto Profil</label>
+            <div class="form-group avatar-container">
                 <img id="avatar-preview" src="placeholder.png" alt="Avatar Preview" class="avatar-preview">
-                <input type="file" id="avatar-file" accept="image/*">
+                <div class="file-controls">
+                    <label for="avatar-file">Ganti Foto Profil</label>
+                    <input type="file" id="avatar-file" accept="image/*" style="display: none;">
+                    <button type="button" id="delete-avatar-btn">Hapus Foto</button>
+                </div>
             </div>
             <div class="form-group">
                 <label for="username">Username</label>
@@ -40,8 +47,9 @@
                     <p>Memuat kategori...</p>
                 </div>
             </div>
-            <button type="submit">Simpan Perubahan</button>
+            <button type="submit" id="submit-btn">Simpan Perubahan</button>
         </form>
+        <a href="index.html" class="back-link">&larr; Kembali ke Homepage</a>
     </div>
     <script type="module" src="profile.js"></script>
 </body>

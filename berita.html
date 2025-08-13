@@ -6,50 +6,63 @@
     <title>Manajemen Berita</title>
     <style>
         body { font-family: sans-serif; padding: 20px; }
-        input[type="text"], textarea, select { padding: 8px; width: 90%; margin-bottom: 10px; }
-        textarea { height: 150px; }
-        button { padding: 8px 12px; cursor: pointer; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], select, textarea { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: 8px 12px; cursor: pointer; border-radius: 4px; border: 1px solid transparent; }
+        #submit-btn { background-color: #007bff; color: white; width: 100%; padding: 12px; font-size: 16px; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
         th { background-color: #f2f2f2; }
+        #content-builder { border: 1px dashed #ccc; padding: 20px; margin-top: 10px; border-radius: 5px; }
+        .content-block { border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 15px; border-radius: 4px; background: #f9f9f9; }
+        .content-block textarea { height: 120px; }
+        .content-block-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .content-block-header span { font-weight: bold; color: #555; }
+        .content-block-header button { background-color: #dc3545; color: white; }
+        .builder-controls { margin-top: 15px; display: flex; gap: 10px; }
     </style>
 </head>
 <body>
     <a href="admin.html">&larr; Kembali ke Dashboard</a>
     <h1>Manajemen Berita</h1>
-
+    <hr>
     <form id="berita-form">
         <input type="hidden" id="berita-id">
+        <div class="form-group">
+            <label for="judul">Judul Berita</label>
+            <input type="text" id="judul" required>
+        </div>
+        <div class="form-group">
+            <label for="kategori">Kategori</label>
+            <select id="kategori" required>
+                <option value="">Pilih Kategori...</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="banner-input">Gambar Banner</label>
+            <input type="file" id="banner-input" accept="image/*">
+            <img id="banner-preview" src="" alt="Preview Banner" style="max-width: 200px; margin-top: 10px; display: none;">
+        </div>
         
-        <label for="judul">Judul Berita</label><br>
-        <input type="text" id="judul" required><br>
+        <label>Isi Berita</label>
+        <div id="content-builder">
+            </div>
 
-        <label for="kategori">Kategori</label><br>
-        <select id="kategori" required>
-            <option value="">Pilih Kategori...</option>
-            </select><br>
-
-        <label for="isi-berita">Isi Berita</label><br>
-        <textarea id="isi-berita" required></textarea><br>
-
-        <button type="submit">Simpan Berita</button>
+        <div class="builder-controls">
+            <button type="button" id="add-paragraph-btn">Tambah Paragraf</button>
+            <button type="button" id="add-image-btn">Tambah Gambar</button>
+        </div>
+        
+        <hr style="margin-top: 20px;">
+        <button type="submit" id="submit-btn" style="margin-top: 10px;">Simpan Berita</button>
     </form>
-
     <hr>
-
     <h3>Daftar Berita</h3>
     <table>
-        <thead>
-            <tr>
-                <th>Judul</th>
-                <th>Kategori</th>
-                <th>Aksi</th>
-            </tr>
-        </thead>
-        <tbody id="berita-list">
-            </tbody>
+        <thead><tr><th>Judul</th><th>Kategori</th><th>Aksi</th></tr></thead>
+        <tbody id="berita-list"></tbody>
     </table>
-
     <script type="module" src="berita.js"></script>
 </body>
 </html>
