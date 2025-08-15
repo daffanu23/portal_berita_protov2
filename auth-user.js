@@ -5,7 +5,16 @@ const supabase = createClient(
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90d3BjcGZyY3FvZ3Rjc25meHR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTAwNzYsImV4cCI6MjA3MDE4NjA3Nn0.u5C3LjsJq6lkBpM5SDhjPV9rpn4JxldFpRtfXtGaHks"
 );
 
-// --- Logika untuk Form Registrasi ---
+// Fungsi baru untuk menampilkan notifikasi (kita buat di kedua file agar mandiri)
+function displayNotification(message, type) {
+    const notificationElement = document.getElementById('notification-message');
+    if (notificationElement) {
+        notificationElement.textContent = message;
+        notificationElement.style.color = type === 'success' ? 'green' : 'red';
+    }
+}
+
+// Logika untuk Form Registrasi
 const registerForm = document.getElementById('register-form');
 if (registerForm) {
     registerForm.addEventListener('submit', async (e) => {
@@ -17,24 +26,21 @@ if (registerForm) {
         const { error } = await supabase.auth.signUp({
             email,
             password,
-            options: {
-                data: {
-                    username: username
-                }
-            }
+            options: { data: { username: username } }
         });
 
         if (error) {
-            alert("Error saat registrasi: " + error.message);
+            displayNotification("Error saat registrasi: " + error.message, 'error');
         } else {
-            // Teks alert sudah diperbaiki
-            alert("Registrasi berhasil! Anda akan diarahkan ke halaman login.");
-            window.location.href = "login-user.html";
+            displayNotification("Registrasi berhasil! Anda akan diarahkan ke halaman login.", 'success');
+            setTimeout(() => {
+                window.location.href = "login-user.html";
+            }, 1500);
         }
     });
 }
 
-// --- Logika untuk Form Login Fleksibel (Diperbaiki) ---
+// Logika untuk Form Login Fleksibel
 const loginForm = document.getElementById('login-form');
 if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
@@ -43,33 +49,27 @@ if (loginForm) {
         const password = document.getElementById('password').value;
         let emailToLogin = identifier;
 
-        // Cek apakah input BUKAN email (maka kita anggap itu username)
         if (!identifier.includes('@')) {
-            // Cari email di tabel 'profiles' berdasarkan username
-            const { data: profile, error: profileError } = await supabase
-                .from('profiles')
-                .select('email') // Langsung ambil email dari profil
-                .eq('username', identifier)
-                .single();
-
+            const { data: profile, error: profileError } = await supabase.from('profiles').select('email').eq('username', identifier).single();
             if (profileError || !profile) {
-                alert("Login Gagal: Username tidak ditemukan.");
+                displayNotification("Login Gagal: Username tidak ditemukan.", 'error');
                 return;
             }
-            emailToLogin = profile.email; // Gunakan email yang ditemukan
+            emailToLogin = profile.email;
         }
         
-        // Lanjutkan proses login menggunakan email
         const { error: signInError } = await supabase.auth.signInWithPassword({
             email: emailToLogin,
             password: password
         });
 
         if (signInError) {
-            alert("Login Gagal: " + signInError.message);
+            displayNotification("Login Gagal: " + signInError.message, 'error');
         } else {
-            alert("Login berhasil!");
-            window.location.href = "index.html";
+            displayNotification("Login berhasil!", 'success');
+            setTimeout(() => {
+                window.location.href = "index.html";
+            }, 1000);
         }
     });
 }

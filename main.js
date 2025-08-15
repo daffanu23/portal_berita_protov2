@@ -7,16 +7,48 @@ const supabase = createClient(
 
 // --- ELEMEN & LOGIKA OTENTIKASI (Tetap sama) ---
 const userStatusContainer = document.getElementById("user-status-container");
+
+// GANTI FUNGSI LAMA DENGAN VERSI BARU INI DI main.js
 async function setupUserStatus() {
     const { data: { session } } = await supabase.auth.getSession();
+
     if (session) {
-        const { data: profile } = await supabase.from('profiles').select('username, avatar_url').eq('id', session.user.id).single();
+        // --- JIKA PENGGUNA LOGIN ---
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('username, avatar_url')
+            .eq('id', session.user.id)
+            .single();
+
         let username = profile ? profile.username.split('@')[0] : 'User';
         let avatarUrl = profile && profile.avatar_url ? profile.avatar_url : 'placeholder.png';
-        userStatusContainer.innerHTML = `<div style="display: flex; align-items: center; gap: 10px;"><img src="${avatarUrl}" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;"><span>Halo, <strong>${username}</strong>!</span><a href="profile.html"><button>Profil</button></a><button id="logout-btn">Logout</button></div>`;
-        document.getElementById('logout-btn').addEventListener('click', async () => { await supabase.auth.signOut(); window.location.reload(); });
+
+        // Buat struktur HTML baru untuk dropdown
+        userStatusContainer.innerHTML = `
+            <div class="profile-dropdown">
+                <div class="profile-trigger">
+                    <img src="${avatarUrl}" alt="Avatar">
+                    <span>Halo, <strong>${username}</strong>!</span>
+                </div>
+
+                <div class="dropdown-content">
+                    <a href="profile.html">Profil</a>
+                    <a href="#" id="logout-btn" class="logout-link">Log Out</a>
+                </div>
+            </div>
+        `;
+
+        // Tambahkan fungsi untuk tombol logout (logika ini tetap sama)
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            window.location.reload();
+        });
+
     } else {
-        userStatusContainer.innerHTML = `<a href="login-user.html">Login</a> | <a href="registrasi.html">Registrasi</a>`;
+        // --- JIKA PENGGUNA TIDAK LOGIN ---
+        userStatusContainer.innerHTML = `
+            <a href="login-user.html">Login</a> | <a href="registrasi.html">Registrasi</a>
+        `;
     }
 }
 

@@ -20,15 +20,15 @@ const kategoriSelect = document.getElementById("kategori");
 const beritaList = document.getElementById("berita-list");
 const bannerInput = document.getElementById("banner-input");
 const bannerPreview = document.getElementById("banner-preview");
+const bannerCaptionInput = document.getElementById("banner-caption-input"); // ELEMEN BARU
 const contentBuilder = document.getElementById("content-builder");
 const addParagraphBtn = document.getElementById("add-paragraph-btn");
 const addImageBtn = document.getElementById("add-image-btn");
 
 // --- FUNGSI PEMBUAT BLOK KONTEN ---
-let blockCounter = 0; // Untuk ID unik setiap blok
+let blockCounter = 0;
 
 function addParagraphBlock(content = '') {
-    const blockId = `block-${blockCounter++}`;
     const block = document.createElement('div');
     block.className = 'content-block';
     block.setAttribute('data-type', 'paragraph');
@@ -43,7 +43,6 @@ function addParagraphBlock(content = '') {
 }
 
 function addImageBlock(url = '', caption = '') {
-    const blockId = `block-${blockCounter++}`;
     const block = document.createElement('div');
     block.className = 'content-block';
     block.setAttribute('data-type', 'image');
@@ -53,17 +52,35 @@ function addImageBlock(url = '', caption = '') {
             <button type="button" onclick="this.parentElement.parentElement.remove()">Hapus</button>
         </div>
         <input type="file" class="image-file-input" accept="image/*">
-        <img src="${url}" class="image-preview" style="max-width: 150px; margin-top: 10px; ${url ? '' : 'display: none;'}">
-        <input type="text" class="image-caption-input" placeholder="Keterangan gambar (opsional)" value="${caption}">
+        <img src="${url}" class="image-preview" style="max-width: 150px; margin-top: 10px; ${url ? 'display:block;' : 'display: none;'}">
+        <input type="text" class="image-caption-input" placeholder="Sumber atau keterangan gambar (opsional)" value="${caption}">
     `;
     contentBuilder.appendChild(block);
 }
 
-// Event listener untuk tombol tambah blok
 addParagraphBtn.addEventListener('click', () => addParagraphBlock());
 addImageBtn.addEventListener('click', () => addImageBlock());
 
-// --- LOGIKA SIMPAN DATA ---
+bannerInput.addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        bannerPreview.src = URL.createObjectURL(file);
+        bannerPreview.style.display = 'block';
+    }
+});
+contentBuilder.addEventListener('change', (event) => {
+    if (event.target.classList.contains('image-file-input')) {
+        const block = event.target.closest('.content-block');
+        const preview = block.querySelector('.image-preview');
+        const file = event.target.files[0];
+        if (file) {
+            preview.src = URL.createObjectURL(file);
+            preview.style.display = 'block';
+        }
+    }
+});
+
+// Ganti event listener submit di berita.js
 beritaForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const submitBtn = document.getElementById('submit-btn');
@@ -71,13 +88,11 @@ beritaForm.addEventListener('submit', async (e) => {
     submitBtn.textContent = 'Menyimpan...';
 
     try {
-        // Proses upload Banner (jika ada file baru)
         let finalBannerUrl = bannerPreview.src;
         if (bannerInput.files[0]) {
             finalBannerUrl = await uploadFile(bannerInput.files[0]);
         }
 
-        // Proses data dari content builder
         const contentBlocks = contentBuilder.querySelectorAll('.content-block');
         const isiBeritaJson = [];
         for (const block of contentBlocks) {
@@ -92,7 +107,7 @@ beritaForm.addEventListener('submit', async (e) => {
                     imageUrl = await uploadFile(imageInput.files[0]);
                 }
                 const caption = block.querySelector('.image-caption-input').value;
-                if (imageUrl) isiBeritaJson.push({ type: 'image', url: imageUrl, caption });
+                if (imageUrl && !imageUrl.includes('placeholder.png')) isiBeritaJson.push({ type: 'image', url: imageUrl, caption });
             }
         }
         
@@ -100,10 +115,11 @@ beritaForm.addEventListener('submit', async (e) => {
             judul: judulInput.value,
             id_kategori: kategoriSelect.value,
             banner_url: finalBannerUrl.includes('placeholder.png') ? null : finalBannerUrl,
-            isi_berita: isiBeritaJson
+            banner_caption: bannerCaptionInput.value,
+            isi_berita: isiBeritaJson,
+            author_id: session.user.id // PERUBAHAN: Simpan ID admin yang sedang login
         };
 
-        // Simpan ke Supabase
         const id = beritaIdInput.value;
         let error;
         if (id) {
@@ -125,7 +141,6 @@ beritaForm.addEventListener('submit', async (e) => {
     }
 });
 
-// Fungsi helper untuk upload file
 async function uploadFile(file) {
     const filePath = `public/${Date.now()}-${file.name}`;
     const { error } = await supabase.storage.from('gambar-berita').upload(filePath, file);
@@ -136,7 +151,6 @@ async function uploadFile(file) {
 
 // --- LOGIKA HALAMAN LAINNYA ---
 async function muatPilihanKategori() {
-    // ... (fungsi ini tetap sama)
     const { data, error } = await supabase.from("kategori").select("id, nama_kategori");
     if (error) { console.error("Gagal memuat kategori:", error); return; }
     data.forEach(kategori => {
@@ -148,7 +162,6 @@ async function muatPilihanKategori() {
 }
 
 async function muatBerita() {
-    // ... (fungsi ini tetap sama)
     beritaList.innerHTML = "<tr><td colspan='3'>Memuat...</td></tr>";
     const { data, error } = await supabase.from("berita").select(`id, judul, created_at, kategori(nama_kategori)`).order("created_at", { ascending: false });
     if (error) { console.error("Gagal memuat berita:", error); return; }
@@ -162,7 +175,8 @@ window.editBerita = async function(id) {
     const { data, error } = await supabase.from("berita").select("*").eq("id", id).single();
     if (error) { alert('Gagal memuat data berita.'); return; }
 
-    // Isi form utama
+    beritaForm.reset();
+    contentBuilder.innerHTML = '';
     beritaIdInput.value = data.id;
     judulInput.value = data.judul;
     kategoriSelect.value = data.id_kategori;
@@ -170,9 +184,8 @@ window.editBerita = async function(id) {
         bannerPreview.src = data.banner_url;
         bannerPreview.style.display = 'block';
     }
+    bannerCaptionInput.value = data.banner_caption || ''; // PERUBAHAN: Muat caption banner
 
-    // Bangun kembali content builder dari data JSON
-    contentBuilder.innerHTML = '';
     if (data.isi_berita && Array.isArray(data.isi_berita)) {
         data.isi_berita.forEach(block => {
             if (block.type === 'paragraph') {
@@ -186,7 +199,6 @@ window.editBerita = async function(id) {
 };
 
 window.hapusBerita = async function(id) {
-    // ... (fungsi ini tetap sama)
     if (confirm("Yakin hapus berita ini?")) {
         const { error } = await supabase.from("berita").delete().eq("id", id);
         if (error) { alert("Gagal menghapus."); } 
@@ -194,11 +206,9 @@ window.hapusBerita = async function(id) {
     }
 };
 
-
-// INISIALISASI HALAMAN
 async function initPage() {
     await muatPilihanKategori();
     await muatBerita();
-    addParagraphBlock(); // Tambahkan satu blok paragraf kosong di awal
+    addParagraphBlock();
 }
 initPage();
