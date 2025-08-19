@@ -5,64 +5,62 @@ const supabase = createClient(
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90d3BjcGZyY3FvZ3Rjc25meHR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2MTAwNzYsImV4cCI6MjA3MDE4NjA3Nn0.u5C3LjsJq6lkBpM5SDhjPV9rpn4JxldFpRtfXtGaHks"
 );
 
-// --- ELEMEN & LOGIKA OTENTIKASI (Tetap sama) ---
+// --- DEFINISI ELEMEN ---
 const userStatusContainer = document.getElementById("user-status-container");
+const beritaListContainer = document.getElementById("berita-list");
+const kategoriFilter = document.getElementById("kategori-filter"); // ELEMEN BARU
 
-// GANTI FUNGSI LAMA DENGAN VERSI BARU INI DI main.js
+// --- LOGIKA OTENTIKASI (Tetap sama) ---
 async function setupUserStatus() {
     const { data: { session } } = await supabase.auth.getSession();
-
     if (session) {
-        // --- JIKA PENGGUNA LOGIN ---
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('username, avatar_url')
-            .eq('id', session.user.id)
-            .single();
-
+        const { data: profile } = await supabase.from('profiles').select('username, avatar_url').eq('id', session.user.id).single();
         let username = profile ? profile.username.split('@')[0] : 'User';
         let avatarUrl = profile && profile.avatar_url ? profile.avatar_url : 'placeholder.png';
-
-        // Buat struktur HTML baru untuk dropdown
-        userStatusContainer.innerHTML = `
-            <div class="profile-dropdown">
-                <div class="profile-trigger">
-                    <img src="${avatarUrl}" alt="Avatar">
-                    <span>Halo, <strong>${username}</strong>!</span>
-                </div>
-
-                <div class="dropdown-content">
-                    <a href="profile.html">Profil</a>
-                    <a href="#" id="logout-btn" class="logout-link">Log Out</a>
-                </div>
-            </div>
-        `;
-
-        // Tambahkan fungsi untuk tombol logout (logika ini tetap sama)
-        document.getElementById('logout-btn').addEventListener('click', async () => {
-            await supabase.auth.signOut();
-            window.location.reload();
-        });
-
+        userStatusContainer.innerHTML = `<div class="profile-dropdown"><div class="profile-trigger"><img src="${avatarUrl}" alt="Avatar"><span>Halo, <strong>${username}</strong>!</span></div><div class="dropdown-content"><a href="profile.html">Profil</a><a href="#" id="logout-btn" class="logout-link">Log Out</a></div></div>`;
+        document.getElementById('logout-btn').addEventListener('click', async () => { await supabase.auth.signOut(); window.location.reload(); });
     } else {
-        // --- JIKA PENGGUNA TIDAK LOGIN ---
-        userStatusContainer.innerHTML = `
-            <a href="login-user.html">Login</a> | <a href="registrasi.html">Registrasi</a>
-        `;
+        userStatusContainer.innerHTML = `<a href="login-user.html">Login</a> | <a href="registrasi.html">Registrasi</a>`;
     }
 }
 
-// --- FUNGSI TAMPIL BERITA (Bagian yang Diperbarui) ---
-const beritaListContainer = document.getElementById("berita-list");
+// --- FUNGSI BARU: ISI DROPDOWN FILTER ---
+async function muatKategoriFilter() {
+    const { data, error } = await supabase
+        .from('kategori')
+        .select('id, nama_kategori');
 
-async function muatSemuaBerita() {
+    if (error) {
+        console.error('Gagal memuat kategori untuk filter:', error);
+        return;
+    }
+
+    data.forEach(kategori => {
+        const option = document.createElement('option');
+        option.value = kategori.id;
+        option.textContent = kategori.nama_kategori;
+        kategoriFilter.appendChild(option);
+    });
+}
+
+// --- FUNGSI TAMPIL BERITA (Diperbarui untuk bisa menerima filter) ---
+async function muatBerita(filterKategoriId = 'semua') {
     beritaListContainer.innerHTML = "<p>Memuat berita...</p>";
 
-    // Kita juga mengambil 'banner_url'
-    const { data, error } = await supabase
+    // Buat query dasar
+    let query = supabase
         .from("berita")
-        .select(`id, judul, isi_berita, banner_url, kategori(nama_kategori)`)
-        .order("created_at", { ascending: false });
+        .select(`id, judul, isi_berita, banner_url, kategori(nama_kategori)`);
+
+    // Jika ada filter yang dipilih (bukan 'semua'), tambahkan filter .eq()
+    if (filterKategoriId !== 'semua') {
+        query = query.eq('id_kategori', filterKategoriId);
+    }
+    
+    // Selalu urutkan berdasarkan yang terbaru
+    query = query.order("created_at", { ascending: false });
+
+    const { data, error } = await query;
 
     if (error) {
         console.error("Gagal memuat berita:", error);
@@ -70,26 +68,21 @@ async function muatSemuaBerita() {
         return;
     }
     if (data.length === 0) {
-        beritaListContainer.innerHTML = "<p>Belum ada berita yang dipublikasikan.</p>";
+        beritaListContainer.innerHTML = "<p>Tidak ada berita yang ditemukan untuk kategori ini.</p>";
         return;
     }
 
     beritaListContainer.innerHTML = "";
     data.forEach(berita => {
-        // --- LOGIKA BARU UNTUK MEMBACA JSON ---
         let preview = 'Klik untuk membaca lebih lanjut...';
-        // Pastikan isi_berita ada dan merupakan array
         if (berita.isi_berita && Array.isArray(berita.isi_berita)) {
-            // Cari blok pertama yang merupakan paragraf
             const firstParagraph = berita.isi_berita.find(block => block.type === 'paragraph');
             if (firstParagraph && firstParagraph.content) {
                 preview = firstParagraph.content.substring(0, 100) + "...";
             }
         }
-        // Gunakan banner sebagai gambar kartu, atau gambar placeholder jika tidak ada
         const bannerUrl = berita.banner_url || 'placeholder.png';
 
-        // Buat kartu berita dengan struktur baru
         const card = document.createElement("div");
         card.className = "berita-card";
         card.innerHTML = `
@@ -107,6 +100,18 @@ async function muatSemuaBerita() {
     });
 }
 
-// Panggil semua fungsi
-setupUserStatus();
-muatSemuaBerita();
+// --- EVENT LISTENER BARU UNTUK FILTER ---
+kategoriFilter.addEventListener('change', (event) => {
+    const kategoriId = event.target.value;
+    muatBerita(kategoriId); // Panggil fungsi muatBerita dengan ID kategori yang dipilih
+});
+
+
+// --- INISIALISASI HALAMAN ---
+async function initPage() {
+    await setupUserStatus();
+    await muatKategoriFilter(); // Panggil fungsi baru untuk mengisi filter
+    await muatBerita(); // Panggil muatBerita tanpa argumen untuk menampilkan semua berita di awal
+}
+
+initPage();

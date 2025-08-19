@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal Berita Terkini</title>
+    <script>
+    // Skrip ini berjalan paling awal untuk mencegah flash mode terang
+    (function() {
+            const theme = localStorage.getItem('theme');
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark-mode');
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" ... >
     <style>
         body { font-family: sans-serif; background-color: #f4f4f4; }
         .container { max-width: 960px; margin: auto; padding: 20px; }
@@ -72,6 +82,72 @@
         .profile-dropdown:hover .dropdown-content {
             display: block;
         }
+
+        /* TAMBAHKAN INI DI DALAM <style> PADA SEMUA HALAMAN ANDA */
+
+        /* 1. Definisikan variabel warna dasar (Mode Terang) */
+        :root {
+            --bg-color: #f4f4f4;
+            --container-bg: white;
+            --card-bg: #f9f9f9;
+            --text-color: #222;
+            --secondary-text-color: #555;
+            --border-color: #ddd;
+            --header-color: #222;
+            --footer-text-color: #eee;
+        }
+
+        /* 2. Ganti nilai variabel saat mode gelap aktif */
+        html.dark-mode {
+            --bg-color: #121212;
+            --container-bg: #1e1e1e;
+            --card-bg: #2a2a2a;
+            --text-color: #eee;
+            --secondary-text-color: #aaa;
+            --border-color: #444;
+            --header-color: #333;
+            --footer-text-color: #ccc;
+        }
+
+        /* 3. Terapkan variabel ke elemen yang ada */
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            background-color: var(--container-bg);
+        }
+
+        .berita-card, .berita-lain-card {
+            background-color: var(--card-bg);
+            border-color: var(--border-color);
+        }
+        .berita-card h3, .berita-lain-card h4, .berita-header h1 {
+            color: var(--text-color);
+        }
+        .berita-meta, .berita-card p, .berita-header p {
+            color: var(--secondary-text-color);
+        }
+        .dropdown-content {
+            background-color: var(--container-bg);
+            border: 1px solid var(--border-color);
+        }
+        .dropdown-content a {
+            color: var(--text-color);
+        }
+        .dropdown-content a:hover {
+            background-color: var(--card-bg);
+        }
+
+        footer {
+            background-color: var(--header-color);
+            color: var(--footer-text-color);
+        }
+        footer a {
+            color: var(--footer-text-color) !important;
+        }
     </style>
 </head>
 <body>
@@ -84,13 +160,34 @@
             <p>Berita terkini dari seluruh dunia.</p>
         </header>
         
+        <div class="filter-container" style="margin-bottom: 20px;">
+            <label for="kategori-filter" style="margin-right: 10px;"><strong>Filter berdasarkan Kategori:</strong></label>
+            <select id="kategori-filter">
+                <option value="semua">Tampilkan Semua</option>
+                </select>
+        </div>
+
         <div id="berita-list" class="berita-grid">
             </div>
     </div>
 
     <script type="module" src="main.js"></script>
+    <script src="theme.js"></script>
 
     <a href="login.html">Admin</a>
     <a href="profile.html">Profil</a>
+    <a href="admin.html">Dashboard</a>
+
+    <footer style="background-color: #222; color: #eee; padding: 30px 0; text-align: center; margin-top: auto;">
+        <button id="theme-toggle" style="background: #444; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; position: fixed; bottom: 20px; right: 20px; z-index: 100;">🌙</button>
+        <p style="margin: 0; font-weight: bold; font-size: 1.2em;">Hubungi Kami</p>
+        <div class="social-links" style="margin: 15px 0;">
+            <a href="https://x.com/DaffaNu2304" target="_blank" title="X / Twitter" style="color: white; font-size: 24px; margin: 0 12px; text-decoration: none;"><i class="fab fa-twitter"></i></a>
+            <a href="https://instagram.com/zetzsuna_" target="_blank" title="Instagram (zetzsuna_)" style="color: white; font-size: 24px; margin: 0 12px; text-decoration: none;"><i class="fab fa-instagram"></i></a>
+            <a href="https://instagram.com/rfkskndr" target="_blank" title="Instagram (rfkskndr)" style="color: white; font-size: 24px; margin: 0 12px; text-decoration: none;"><i class="fab fa-instagram"></i></a>
+            <a href="https://wa.me/6281234567890" target="_blank" title="WhatsApp" style="color: white; font-size: 24px; margin: 0 12px; text-decoration: none;"><i class="fab fa-whatsapp"></i></a>
+        </div>
+        <p style="font-size: 0.9em; color: #aaa;">&copy; 2025 Nama Portal Berita Anda. All Rights Reserved.</p>
+    </footer>
 </body>
 </html>

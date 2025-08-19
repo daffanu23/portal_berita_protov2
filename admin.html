@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
+    <script>
+        (function() {
+            const theme = localStorage.getItem('theme');
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark-mode');
+            }
+        })();
+    </script>
     <style>
         body { font-family: sans-serif; padding: 20px; }
         input[type="text"] { padding: 8px; width: 300px; }
@@ -12,6 +20,82 @@
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
         th { background-color: #f2f2f2; }
+
+        :root {
+            --bg-color: #f4f4f4;
+            --container-bg: white;
+            --card-bg: #f9f9f9;
+            --text-color: #222;
+            --secondary-text-color: #555;
+            --border-color: #ddd;
+            --header-color: #222;
+            --footer-text-color: #eee;
+            --input-bg: white;
+            --input-border: #ccc;
+            --button-bg: #007bff;
+        }
+
+        /* Ganti nilai variabel saat mode gelap aktif */
+        html.dark-mode {
+            --bg-color: #121212;
+            --container-bg: #1e1e1e;
+            --card-bg: #2a2a2a;
+            --text-color: #eee;
+            --secondary-text-color: #aaa;
+            --border-color: #444;
+            --header-color: #333;
+            --footer-text-color: #ccc;
+            --input-bg: #2a2a2a;
+            --input-border: #555;
+            --button-bg: #0056b3;
+        }
+
+        /* Terapkan variabel ke elemen umum */
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .container {
+            background-color: var(--container-bg);
+        }
+        .berita-card, .berita-lain-card {
+            background-color: var(--card-bg);
+            border-color: var(--border-color);
+        }
+        h1, h2, h3, h4, strong {
+            color: var(--text-color);
+        }
+        .berita-meta, .berita-card p, .berita-header p {
+            color: var(--secondary-text-color);
+        }
+        footer {
+            background-color: var(--header-color);
+            color: var(--footer-text-color);
+        }
+        footer a {
+            color: var(--footer-text-color) !important;
+        }
+
+        /* Style untuk elemen form dan tabel (halaman admin & profil) */
+        input, select, textarea {
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-color);
+        }
+        table {
+            border-color: var(--border-color);
+        }
+        th {
+            background-color: #333;
+        }
+        td {
+            border-color: var(--border-color);
+        }
+        .content-block {
+            background-color: var(--bg-color);
+            border-color: var(--border-color);
+        }
     </style>
 </head>
 <body>
@@ -41,6 +125,9 @@
             </tbody>
     </table>
 
+    <button id="theme-toggle" style="background: #444; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; position: fixed; bottom: 20px; right: 20px; z-index: 100;">🌙</button>
+
+    <script src="theme.js"></script>
     <script type="module" src="admin.js"></script>
 </body>
 </html>
