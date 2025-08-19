@@ -12,30 +12,27 @@ if (!session) {
     window.location.href = "login.html";
 }
 const logoutButton = document.getElementById("logout-btn");
-logoutButton.addEventListener("click", async () => {
-    await supabase.auth.signOut();
-    window.location.href = "login.html";
-});
+logoutButton.addEventListener("click", async () => { await supabase.auth.signOut(); window.location.href = "login.html"; });
 
-
-// --- LOGIKA T.E.H. KATEGORI (Bagian yang Diperbarui) ---
+// --- LOGIKA T.E.H. KATEGORI (Diperbarui) ---
 const kategoriForm = document.getElementById("kategori-form");
 const kategoriNamaInput = document.getElementById("nama-kategori");
 const kategoriList = document.getElementById("kategori-list");
 
-// FUNGSI TAMPIL (READ): Sedikit modifikasi untuk menambahkan ID unik pada setiap baris
 async function muatKategori() {
-    kategoriList.innerHTML = "<tr><td colspan='2'>Memuat...</td></tr>";
-
+    kategoriList.innerHTML = "<tr><td colspan='3'>Memuat...</td></tr>";
     const { data, error } = await supabase.from("kategori").select("*").order("created_at", { ascending: false });
     if (error) { console.error("Error mengambil kategori:", error); return; }
 
     kategoriList.innerHTML = "";
     data.forEach(kategori => {
-        // PERUBAHAN: Menambahkan id unik pada <td> agar mudah ditargetkan
+        const isChecked = kategori.tampil_di_header ? 'checked' : '';
         const row = `
             <tr>
                 <td id="nama-kategori-${kategori.id}">${kategori.nama_kategori}</td>
+                <td>
+                    <input type="checkbox" onchange="toggleHeaderStatus(${kategori.id}, this.checked)" ${isChecked}>
+                </td>
                 <td id="aksi-kategori-${kategori.id}">
                     <button onclick="editKategori(${kategori.id}, '${kategori.nama_kategori}')">Edit</button>
                     <button onclick="hapusKategori(${kategori.id})">Hapus</button>
@@ -46,27 +43,27 @@ async function muatKategori() {
     });
 }
 
-// FUNGSI TAMBAH (CREATE): Sekarang HANYA untuk menambah data baru
+// FUNGSI BARU: Untuk mengubah status 'tampil_di_header'
+window.toggleHeaderStatus = async function(id, status) {
+    const { error } = await supabase
+        .from('kategori')
+        .update({ tampil_di_header: status })
+        .eq('id', id);
+    if (error) {
+        alert('Gagal mengubah status: ' + error.message);
+        muatKategori(); // Muat ulang untuk mengembalikan ke state semula
+    }
+}
+
+// ... (semua fungsi lain seperti submit form, hapus, edit, simpan, batal, dll tetap sama) ...
 kategoriForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const nama = kategoriNamaInput.value.trim();
-    if (!nama) {
-        alert("Nama kategori tidak boleh kosong.");
-        return;
-    }
-
-    // PERUBAHAN: Logika 'if (id)' untuk edit sudah dihapus. Form ini HANYA untuk insert.
+    if (!nama) { alert("Nama kategori tidak boleh kosong."); return; }
     const { error } = await supabase.from("kategori").insert([{ nama_kategori: nama }]);
-
-    if (error) {
-        alert("Gagal menambah data: " + error.message);
-    } else {
-        kategoriForm.reset();
-        await muatKategori();
-    }
+    if (error) { alert("Gagal menambah data: " + error.message); } 
+    else { kategoriForm.reset(); await muatKategori(); }
 });
-
-// FUNGSI HAPUS (DELETE): Tidak ada perubahan
 window.hapusKategori = async function(id) {
     if (confirm("Apakah Anda yakin ingin menghapus kategori ini?")) {
         const { error } = await supabase.from("kategori").delete().eq("id", id);
@@ -74,60 +71,25 @@ window.hapusKategori = async function(id) {
         else { await muatKategori(); }
     }
 }
-
-// --- LOGIKA BARU UNTUK INLINE EDITING ---
-
-// FUNGSI EDIT: Mengubah baris menjadi mode edit
 window.editKategori = function(id, nama) {
     const namaCell = document.getElementById(`nama-kategori-${id}`);
     const aksiCell = document.getElementById(`aksi-kategori-${id}`);
-
-    // Ganti teks nama dengan kolom input
     namaCell.innerHTML = `<input type="text" id="input-edit-${id}" value="${nama}" style="width: 90%;">`;
-    
-    // Ganti tombol lama dengan tombol "Confirm" dan "Cancel"
-    aksiCell.innerHTML = `
-        <button onclick="simpanPerubahan(${id})">Confirm</button>
-        <button onclick="batalEdit(${id}, '${nama}')">Cancel</button>
-    `;
+    aksiCell.innerHTML = `<button onclick="simpanPerubahan(${id})">Confirm</button><button onclick="batalEdit(${id}, '${nama}')">Cancel</button>`;
 }
-
-// FUNGSI SIMPAN PERUBAHAN: Dipanggil oleh tombol "Confirm"
 window.simpanPerubahan = async function(id) {
     const inputElement = document.getElementById(`input-edit-${id}`);
     const namaBaru = inputElement.value.trim();
-
-    if (!namaBaru) {
-        alert("Nama kategori tidak boleh kosong.");
-        return;
-    }
-
-    const { error } = await supabase
-        .from('kategori')
-        .update({ nama_kategori: namaBaru })
-        .eq('id', id);
-
-    if (error) {
-        alert('Gagal menyimpan perubahan: ' + error.message);
-    } else {
-        // Muat ulang seluruh daftar untuk mengembalikan tampilan ke normal
-        await muatKategori();
-    }
+    if (!namaBaru) { alert("Nama kategori tidak boleh kosong."); return; }
+    const { error } = await supabase.from('kategori').update({ nama_kategori: namaBaru }).eq('id', id);
+    if (error) { alert('Gagal menyimpan perubahan: ' + error.message); } 
+    else { await muatKategori(); }
 }
-
-// FUNGSI BATAL EDIT: Dipanggil oleh tombol "Cancel"
 window.batalEdit = function(id, namaAsli) {
     const namaCell = document.getElementById(`nama-kategori-${id}`);
     const aksiCell = document.getElementById(`aksi-kategori-${id}`);
-
-    // Kembalikan konten sel ke kondisi semula
     namaCell.innerHTML = namaAsli;
-    aksiCell.innerHTML = `
-        <button onclick="editKategori(${id}, '${namaAsli}')">Edit</button>
-        <button onclick="hapusKategori(${id})">Hapus</button>
-    `;
+    aksiCell.innerHTML = `<button onclick="editKategori(${id}, '${namaAsli}')">Edit</button><button onclick="hapusKategori(${id})">Hapus</button>`;
 }
 
-
-// Panggil fungsi muatKategori() saat halaman pertama kali dimuat
 muatKategori();
