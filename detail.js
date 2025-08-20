@@ -7,13 +7,42 @@ const supabase = createClient(
 
 // --- DEFINISI ELEMEN ---
 const detailContainer = document.getElementById("detail-berita-container");
-const authStatusContainer = document.getElementById("auth-status");
+const userStatusContainer = document.getElementById("user-status-container");
+const categoryNav = document.getElementById("category-nav");
 const komentarForm = document.getElementById("komentar-form");
 const loginPrompt = document.getElementById("login-prompt");
 const komentarList = document.getElementById("komentar-list");
 let currentUser = null;
 
 // --- FUNGSI-FUNGSI ---
+
+// Fungsi ini HANYA memuat kategori, tidak ada info login
+async function setupCategoryNav() {
+    const { data: categories } = await supabase.from('kategori').select('id, nama_kategori').eq('tampil_di_header', true).limit(7);
+    if (categories && categoryNav) {
+        categoryNav.innerHTML = categories.map(cat => `<a href="index.html?kategori=${cat.id}">${cat.nama_kategori.toUpperCase()}</a>`).join('');
+    }
+}
+
+// FUNGSI INI HANYA UNTUK MEMPERBARUI UI berdasarkan status login
+async function updateAuthUI(user) {
+    if (user) {
+        const { data: profile } = await supabase.from('profiles').select('username, avatar_url').eq('id', user.id).single();
+        let username = (profile && profile.username) ? profile.username.split('@')[0] : 'User';
+        let avatarUrl = (profile && profile.avatar_url) ? profile.avatar_url : 'placeholder.png';
+        userStatusContainer.innerHTML = `<div class="profile-dropdown"><div class="profile-trigger"><img src="${avatarUrl}" alt="Avatar"><span>Halo, <strong>${username}</strong>!</span></div><div class="dropdown-content"><a href="profile.html">Profil</a><a href="#" id="logout-btn" class="logout-link">Log Out</a></div></div>`;
+        document.getElementById('logout-btn').addEventListener('click', async () => { await supabase.auth.signOut(); window.location.reload(); });
+        
+        loginPrompt.style.display = 'none';
+        komentarForm.style.display = 'block';
+    } else {
+        userStatusContainer.innerHTML = `<a href="login-user.html" style="color: white; text-decoration: none;">Login</a>`;
+        
+        loginPrompt.style.display = 'block';
+        komentarForm.style.display = 'none';
+    }
+}
+
 function getBeritaIdFromUrl() {
     const params = new URLSearchParams(window.location.search);
     return params.get('id');
@@ -78,23 +107,6 @@ async function muatDetailBerita() {
     detailContainer.innerHTML = `<div class="berita-header"><h1>${data.judul}</h1><p class="berita-meta"><strong>Kategori:</strong> ${namaKategori} | <strong>Dipublikasikan pada:</strong> ${tanggal}</p>${authorHtml}</div>${bannerHtml}<hr style="border: none; border-top: 1px solid #e0e0e0; margin: 40px 0;"><div class="berita-content">${contentHtml}</div>`;
     
     await muatBeritaLain(data.id);
-}
-
-// FUNGSI INI HANYA UNTUK MEMPERBARUI UI (HEADER & FORM KOMENTAR)
-async function updateAuthUI() {
-    if (currentUser) {
-        const { data: profile } = await supabase.from('profiles').select('username, avatar_url').eq('id', currentUser.id).single();
-        let username = (profile && profile.username) ? profile.username.split('@')[0] : 'User';
-        let avatarUrl = (profile && profile.avatar_url) ? profile.avatar_url : 'placeholder.png';
-        authStatusContainer.innerHTML = `<div class="profile-dropdown"><div class="profile-trigger"><img src="${avatarUrl}" alt="Avatar"><span>Halo, <strong>${username}</strong>!</span></div><div class="dropdown-content"><a href="profile.html">Profil</a><a href="#" id="logout-btn" class="logout-link">Log Out</a></div></div>`;
-        loginPrompt.style.display = 'none';
-        komentarForm.style.display = 'block';
-        document.getElementById('logout-btn').addEventListener('click', async () => { await supabase.auth.signOut(); });
-    } else {
-        authStatusContainer.innerHTML = `<a href="login-user.html">Login</a> | <a href="registrasi.html">Registrasi</a>`;
-        loginPrompt.style.display = 'block';
-        komentarForm.style.display = 'none';
-    }
 }
 
 komentarForm.addEventListener('submit', async (e) => {
@@ -165,16 +177,17 @@ window.postReply = async function(event, parentId) {
 
 // --- BAGIAN INISIALISASI HALAMAN YANG BARU DAN LEBIH BAIK ---
 
-// 1. Muat konten utama halaman (berita & komentar) satu kali.
-async function loadPageContent() {
-    await muatDetailBerita();
-    await muatKomentar();
+// 1. Muat konten yang tidak bergantung pada login terlebih dahulu
+async function loadStaticContent() {
+    await setupCategoryNav(); // Muat navigasi kategori di header
+    await muatDetailBerita(); // Muat konten utama berita
+    await muatKomentar(); // Muat komentar
 }
-loadPageContent();
+loadStaticContent();
 
 // 2. Pasang "pendengar" status otentikasi.
 // Pendengar ini akan berjalan saat halaman dimuat & setiap kali ada login/logout.
 supabase.auth.onAuthStateChange((_event, session) => {
     currentUser = session?.user;
-    updateAuthUI(); // Perbarui UI header dan form komentar sesuai status login
+    updateAuthUI(currentUser); // Perbarui UI yang bergantung pada login
 });

@@ -5,115 +5,66 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detail Berita</title>
     <script>
-    // Skrip ini berjalan paling awal untuk mencegah flash mode terang
-    (function() {
-            const theme = localStorage.getItem('theme');
-            if (theme === 'dark') {
-                document.documentElement.classList.add('dark-mode');
-            }
-        })();
+        (function() { const theme = localStorage.getItem('theme'); if (theme === 'dark') { document.documentElement.classList.add('dark-mode'); } })();
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        body { font-family: sans-serif; background-color: #f4f4f4; margin: 0; } /* Hapus margin default body */
-        .container { max-width: 800px; margin: auto; padding: 20px; background-color: white; border-radius: 5px; }
-        .berita-header h1 { margin-top: 0; }
-        .berita-meta { color: #555; margin-bottom: 20px; }
-        .berita-content { line-height: 1.6; }
-        #berita-lain-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
-        .berita-lain-card { background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 5px; overflow: hidden; text-decoration: none; color: black; transition: box-shadow 0.3s; }
-        .berita-lain-card:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .berita-lain-card img { width: 100%; height: 120px; object-fit: cover; }
-        .berita-lain-card h4 { margin: 10px 15px; }
-        .share-buttons { display: flex; gap: 10px; margin-top: 20px; align-items: center; }
-        .share-buttons span { font-weight: bold; }
-        .share-buttons a, .share-buttons button { display: inline-block; width: 40px; height: 40px; line-height: 40px; text-align: center; border-radius: 50%; color: white; font-size: 20px; transition: transform 0.2s; border: none; cursor: pointer; }
-        .share-buttons a:hover, .share-buttons button:hover { transform: scale(1.1); }
-        .sb-facebook { background-color: #3b5998; }
-        .sb-x { background-color: #000000; }
-        .sb-whatsapp { background-color: #25D366; }
-        .sb-telegram { background-color: #0088cc; }
-        .sb-copy { background-color: #6c757d; }
+        /* CSS Variabel (Disalin dari index.html) */
+        :root {
+            --bg-color: #f4f4f4; --container-bg: white; --card-bg: #f9f9f9; --text-color: #222;
+            --secondary-text-color: #555; --border-color: #ddd; --header-color: #222; --footer-text-color: #eee;
+        }
+        html.dark-mode {
+            --bg-color: #121212; --container-bg: #1e1e1e; --card-bg: #2a2a2a; --text-color: #eee;
+            --secondary-text-color: #aaa; --border-color: #444; --header-color: #333; --footer-text-color: #ccc;
+        }
+        
+        body { font-family: sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; }
+        .container { max-width: 800px; margin: auto; padding: 20px; }
+        
+        /* STYLE HEADER (Disalin dari index.html) */
+        .main-header { position: sticky; top: 0; z-index: 1000; background-color: #1a1a1a; color: white; padding: 0 30px; display: flex; justify-content: space-between; align-items: center; height: 70px; }
+        .logo-container a { font-size: 1.5em; font-weight: bold; color: white; text-decoration: none; }
+        .category-nav { display: flex; gap: 25px; flex-grow: 1; justify-content: center; margin: 0 20px; }
+        .category-nav a { color: #ccc; text-decoration: none; font-weight: bold; font-size: 0.9em; text-transform: uppercase; transition: color 0.3s; }
+        .category-nav a:hover, .category-nav a.active { color: white; }
         .profile-dropdown { position: relative; display: inline-block; cursor: pointer; }
         .profile-trigger { display: flex; align-items: center; gap: 10px; }
         .profile-trigger img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
-        .dropdown-content { display: none; position: absolute; right: 0; background-color: white; min-width: 160px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; border-radius: 5px; overflow: hidden; }
-        .dropdown-content a { color: black; padding: 12px 16px; text-decoration: none; display: block; text-align: left; }
-        .dropdown-content a:hover { background-color: #f1f1f1; }
+        .profile-trigger span { color: white; }
+        .dropdown-content { display: none; position: absolute; right: 0; background-color: var(--container-bg); min-width: 160px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; border-radius: 5px; overflow: hidden; border: 1px solid var(--border-color); }
+        .dropdown-content a { color: var(--text-color); padding: 12px 16px; text-decoration: none; display: block; text-align: left; }
+        .dropdown-content a:hover { background-color: var(--card-bg); }
         .logout-link { color: #dc3545 !important; font-weight: bold; }
         .profile-dropdown:hover .dropdown-content { display: block; }
-
-        /* TAMBAHKAN INI DI DALAM <style> PADA SEMUA HALAMAN ANDA */
-
-        /* 1. Definisikan variabel warna dasar (Mode Terang) */
-        :root {
-            --bg-color: #f4f4f4;
-            --container-bg: white;
-            --card-bg: #f9f9f9;
-            --text-color: #222;
-            --secondary-text-color: #555;
-            --border-color: #ddd;
-            --header-color: #222;
-            --footer-text-color: #eee;
-        }
-
-        /* 2. Ganti nilai variabel saat mode gelap aktif */
-        html.dark-mode {
-            --bg-color: #121212;
-            --container-bg: #1e1e1e;
-            --card-bg: #2a2a2a;
-            --text-color: #eee;
-            --secondary-text-color: #aaa;
-            --border-color: #444;
-            --header-color: #333;
-            --footer-text-color: #ccc;
-        }
-
-        /* 3. Terapkan variabel ke elemen yang ada */
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        .container {
-            background-color: var(--container-bg);
-        }
-
-        .berita-card, .berita-lain-card {
-            background-color: var(--card-bg);
-            border-color: var(--border-color);
-        }
-        .berita-card h3, .berita-lain-card h4, .berita-header h1 {
-            color: var(--text-color);
-        }
-        .berita-meta, .berita-card p, .berita-header p {
-            color: var(--secondary-text-color);
-        }
-        .dropdown-content {
-            background-color: var(--container-bg);
-            border: 1px solid var(--border-color);
-        }
-        .dropdown-content a {
-            color: var(--text-color);
-        }
-        .dropdown-content a:hover {
-            background-color: var(--card-bg);
-        }
-
-        footer {
-            background-color: var(--header-color);
-            color: var(--footer-text-color);
-        }
-        footer a {
-            color: var(--footer-text-color) !important;
-        }
+        
+        /* CSS Halaman Detail */
+        .berita-header h1 { margin-top: 0; color: var(--text-color); }
+        .berita-meta { color: var(--secondary-text-color); margin-bottom: 20px; }
+        .berita-content { line-height: 1.6; }
+        .share-buttons { display: flex; gap: 10px; margin-top: 20px; align-items: center; }
+        .share-buttons span { font-weight: bold; color: var(--text-color); }
+        .share-buttons a, .share-buttons button { display: inline-flex; justify-content: center; align-items: center; width: 40px; height: 40px; border-radius: 50%; color: white; font-size: 18px; text-decoration: none; transition: transform 0.2s; border: none; cursor: pointer; }
+        .sb-facebook { background-color: #3b5998; } .sb-x { background-color: #000000; } .sb-whatsapp { background-color: #25D366; } .sb-telegram { background-color: #0088cc; } .sb-copy { background-color: #6c757d; }
+        #berita-lain-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        .berita-lain-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 5px; overflow: hidden; text-decoration: none; color: var(--text-color); transition: box-shadow 0.3s; }
+        .berita-lain-card:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .berita-lain-card img { width: 100%; height: 120px; object-fit: cover; }
+        .berita-lain-card h4 { margin: 10px 15px; color: var(--text-color); }
+        footer { background-color: #222; color: #eee; padding: 30px 0; text-align: center; }
+        footer a { color: #eee !important; text-decoration: none; }
     </style>
 </head>
 <body>
-    <div class="container" style="min-height: 80vh;">
-        <div id="auth-status" style="text-align: right; margin-bottom: 10px;"></div>
-        <a href="index.html">&larr; Kembali ke semua berita</a>
+    <header class="main-header">
+        <div class="logo-container">
+            <a href="index.html">LOGO ANDA</a>
+        </div>
+        <nav id="category-nav" class="category-nav"></nav>
+        <div id="user-status-container"></div>
+    </header>
+
+    <div class="container">
         <div id="detail-berita-container"></div>
         <div id="share-buttons-container"></div>
         <div id="komentar-section">
@@ -122,9 +73,7 @@
                 <textarea id="isi-komentar" placeholder="Tulis komentar Anda..." required></textarea>
                 <button type="submit">Kirim Komentar</button>
             </form>
-            <p id="login-prompt">
-                <i><a href="login-user.html">Login</a> untuk berkomentar.</i>
-            </p>
+            <p id="login-prompt"><i><a href="login-user.html">Login</a> untuk berkomentar.</i></p>
             <div id="komentar-list" style="margin-top: 20px;"></div>
         </div>
         <div id="berita-lain-section">
@@ -132,21 +81,20 @@
             <div id="berita-lain-grid"></div>
         </div>
     </div>
-
+    
     <footer style="background-color: #222; color: #eee; padding: 30px 0; text-align: center; margin-top: auto;">
         <button id="theme-toggle" style="background: #444; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; position: fixed; bottom: 20px; right: 20px; z-index: 100;">🌙</button>
         <p style="margin: 0; font-weight: bold; font-size: 1.2em;">Hubungi Kami</p>
         <div class="social-links" style="margin: 15px 0;">
-            <a href="https://x.com/DaffaNu2304" target="_blank" title="X / Twitter" style="color: white; font-size: 24px; margin: 0 12px; text-decoration: none;"><i class="fab fa-twitter"></i></a>
-            <a href="https://instagram.com/zetzsuna_" target="_blank" title="Instagram (zetzsuna_)" style="color: white; font-size: 24px; margin: 0 12px; text-decoration: none;"><i class="fab fa-instagram"></i></a>
-            <a href="https://instagram.com/rfkskndr" target="_blank" title="Instagram (rfkskndr)" style="color: white; font-size: 24px; margin: 0 12px; text-decoration: none;"><i class="fab fa-instagram"></i></a>
-            <a href="https://wa.me/6281234567890" target="_blank" title="WhatsApp" style="color: white; font-size: 24px; margin: 0 12px; text-decoration: none;"><i class="fab fa-whatsapp"></i></a>
+            <a href="https://x.com/DaffaNu2304" target="_blank" title="X / Twitter"><i class="fab fa-twitter"></i></a>
+            <a href="https://instagram.com/zetzsuna_" target="_blank" title="Instagram (zetzsuna_)"><i class="fab fa-instagram"></i></a>
+            <a href="https://instagram.com/rfkskndr" target="_blank" title="Instagram (rfkskndr)"><i class="fab fa-instagram"></i></a>
+            <a href="https://wa.me/6281234567890" target="_blank" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
         </div>
         <p style="font-size: 0.9em; color: #aaa;">&copy; 2025 Nama Portal Berita Anda. All Rights Reserved.</p>
     </footer>
 
-    <script src="theme.js"></script>
     <script type="module" src="detail.js"></script>
-    
+    <script src="theme.js"></script>
 </body>
 </html>
